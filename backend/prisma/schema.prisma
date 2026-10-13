@@ -12,8 +12,72 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id  String  @id() @default(uuid())
+  username  String  @unique()
+  email     String  @unique()
+  hashedPassword  String
+  refreshTokens RefreshToken[]
+  createdAt   DateTime  @default(now())
 
-model Test {
-  id  Int @unique @default(autoincrement())
-  name  String
+  applications  Application[]
 }
+
+model RefreshToken {
+  id  Int @id() @default(autoincrement())
+  userId  String
+  hashedToken String
+  revoked Boolean @default(false)
+  createdAt DateTime  @default(now())
+  userAgent String?
+  user  User @relation(fields: [userId], references: [id])
+}
+
+model Application {
+  id  String  @id() @default(uuid())
+
+  // extracted by AI
+  company       String
+  title         String
+  role          String
+  summarize     String
+  companyEmail  String
+  phone         String?
+  postedAt      DateTime?
+  website       String? // company platform
+  location      String?
+  salaryMin     Int?
+  salaryMax     Int?
+  jobType       JobType @default(UNKNOWN)
+  deadline      DateTime?
+  requirements  String[]  // aray of extracted skills/requirement 
+  rawExtracted  Json? // full ai response for debugg
+
+  // managed by user
+  status  ApplicationStatus @default(SAVED)
+  appliedAt DateTime? // when user marked as APPLIED
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  userId  String
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum  JobType {
+  FULL_TIME
+  PART_TIME
+  REMOTE
+  HYBRID
+  INTERNSHIP
+  CONTRACT
+  UNKNOWN
+}
+enum ApplicationStatus {
+  SAVED // Not yet Applied
+  APPLIED
+  OFFER  // received an offer, accepted
+  INTERVIEW // got a response, interview schedul
+  REJECTED
+}
+
