@@ -1,0 +1,9 @@
+{
+  "name": "jobTracker",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend",
+    "packages/*"
+  ]
+}
