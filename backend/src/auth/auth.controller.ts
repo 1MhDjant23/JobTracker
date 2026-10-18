@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Headers, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/auth.dto';
+import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { ApiResponse } from '../../../packages/contracts/src/common';
 import { LoginControllerResult } from './auth.types';
 import type { Response } from 'express';
@@ -39,8 +39,8 @@ export class AuthController {
     };
   }
 
-  // @Post('register')
-  // register(@Body() dto: RegisterDto) {
-  //   return dto;
-  // }
+  @Post('register')
+  async register(@Body() dto: RegisterDto): Promise<void> {
+    await this.authService.register(dto);
+  }
 }

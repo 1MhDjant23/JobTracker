@@ -15,3 +15,7 @@ export interface TokenPair {
   accessToken: string;
   refreshToken: string;
 }
+
+// export interface RegisterControllerResult {
+//   user: Publi
+// }

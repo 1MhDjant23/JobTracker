@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { LoginDto } from './dto/auth.dto';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -9,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import { toPublicUser } from 'src/user/mappers/user.mapper';
 import { LoginServiceResult, TokenPair } from './auth.types';
 import { User as PrismaUser } from 'generated/prisma/client';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class AuthService {
@@ -16,8 +21,9 @@ export class AuthService {
     private readonly confgService: ConfigService,
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly userService: UserService,
   ) {}
-
+  /** Login Logic */
   async login({
     dto,
     userAgent,
@@ -44,6 +50,28 @@ export class AuthService {
       refreshToken: refreshToken,
     };
   }
+  /** Register Logic */
+  async register(dto: RegisterDto) {
+    let exist = await this.findUserByUsername(dto.username);
+    if (exist) {
+      throw new ConflictException(
+        'username already taken, please enter different username',
+      );
+    }
+    exist = await this.findUserByEmail(dto.email);
+    if (exist) {
+      throw new ConflictException(
+        'email already taken, please enter different email',
+      );
+    }
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    await this.userService.create({
+      username: dto.username,
+      email: dto.email,
+      hashedPassword: hashedPassword,
+    });
+  }
+
   /** ********************************************** */
   generateTokens({ sub }: { sub: string }): TokenPair {
     const accessToken = this.jwtService.sign(
@@ -87,6 +115,13 @@ export class AuthService {
     return await this.prisma.user.findUnique({
       where: {
         username: username,
+      },
+    });
+  }
+  async findUserByEmail(email: string): Promise<PrismaUser | null> {
+    return await this.prisma.user.findUnique({
+      where: {
+        email: email,
       },
     });
   }
