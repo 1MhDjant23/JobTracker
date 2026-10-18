@@ -6,10 +6,10 @@ import { ConfigModule } from '@nestjs/config';
 import { join } from 'path';
 import { UserModule } from './user/user.module';
 import Joi from 'joi';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
-    AuthModule,
     ConfigModule.forRoot({
       envFilePath: [join(process.cwd(), '.env')],
       isGlobal: true,
@@ -23,6 +23,8 @@ import Joi from 'joi';
         MODE: Joi.string().default('DEV'),
       }),
     }),
+    PrismaModule,
+    AuthModule,
     UserModule,
   ],
   controllers: [AppController],
