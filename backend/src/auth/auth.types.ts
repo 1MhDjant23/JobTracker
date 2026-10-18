@@ -1,4 +1,5 @@
 import { User as PublicUser } from '@jobTracker/contracts';
+import { RefreshToken } from 'generated/prisma/client';
 
 export interface LoginServiceResult {
   user: PublicUser;
@@ -11,11 +12,15 @@ export type LoginControllerResult = Pick<
   'accessToken' | 'user'
 >;
 
+export interface RefreshStrategyResult {
+  userId: string;
+  refreshId: number;
+}
+
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;
 }
-
-// export interface RegisterControllerResult {
-//   user: Publi
-// }
+export interface UserWithToken extends PublicUser {
+  refreshTokens: RefreshToken[];
+}

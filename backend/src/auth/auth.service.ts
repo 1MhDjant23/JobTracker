@@ -11,8 +11,8 @@ import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { toPublicUser } from 'src/user/mappers/user.mapper';
-import { LoginServiceResult, TokenPair } from './auth.types';
-import { User as PrismaUser } from 'generated/prisma/client';
+import { LoginServiceResult, TokenPair, UserWithToken } from './auth.types';
+import { User as PrismaUser, RefreshToken } from 'generated/prisma/client';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -71,7 +71,8 @@ export class AuthService {
       hashedPassword: hashedPassword,
     });
   }
-
+  /** Logout Logic */
+  async logout(refreshToken: string) {}
   /** ********************************************** */
   generateTokens({ sub }: { sub: string }): TokenPair {
     const accessToken = this.jwtService.sign(
@@ -109,6 +110,12 @@ export class AuthService {
         hashedToken: hashedToken,
         userAgent: userAgent,
       },
+    });
+  }
+  async findUserByIdWithToken(userId: string): Promise<UserWithToken | null> {
+    return await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { refreshTokens: true },
     });
   }
   async findUserByUsername(username: string): Promise<PrismaUser | null> {

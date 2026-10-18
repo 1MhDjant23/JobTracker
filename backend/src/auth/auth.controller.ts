@@ -40,7 +40,28 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() dto: RegisterDto): Promise<void> {
+  async register(@Body() dto: RegisterDto): Promise<ApiResponse<null>> {
     await this.authService.register(dto);
+    return {
+      data: null,
+    };
+  }
+
+  @Post('logout')
+  logout(
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResponse<null>> {
+    // set current refreshToken as Revoked
+
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: this.confgService.getOrThrow<string>('MODE') === 'PROD',
+      path: '/',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return {
+      data: null,
+    };
   }
 }
