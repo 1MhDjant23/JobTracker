@@ -1,10 +1,22 @@
-import { Controller, Post, Body, Headers, Res } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Headers,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { ApiResponse } from '../../../packages/contracts/src/common';
-import { LoginControllerResult } from './auth.types';
+import type {
+  LoginControllerResult,
+  RefreshStrategyResult,
+} from './auth.types';
 import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
+import { JwtRefreshGuard } from './guards/jwt-refresh-guard';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -48,11 +60,12 @@ export class AuthController {
   }
 
   @Post('logout')
-  logout(
+  @UseGuards(JwtRefreshGuard)
+  async logout(
+    @CurrentUser('refreshId') refreshId: number,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ApiResponse<null>> {
-    // set current refreshToken as Revoked
-
+    await this.authService.logout(refreshId);
     res.clearCookie('refreshToken', {
       httpOnly: true,
       secure: this.confgService.getOrThrow<string>('MODE') === 'PROD',

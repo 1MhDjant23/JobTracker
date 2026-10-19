@@ -17,6 +17,10 @@ export interface RefreshStrategyResult {
   refreshId: number;
 }
 
+export interface AccessStrategyResult {
+  userId: string;
+}
+
 export interface TokenPair {
   accessToken: string;
   refreshToken: string;

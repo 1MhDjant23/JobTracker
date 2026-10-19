@@ -72,7 +72,14 @@ export class AuthService {
     });
   }
   /** Logout Logic */
-  async logout(refreshToken: string) {}
+  async logout(refreshId: number): Promise<void> {
+    await this.prisma.refreshToken.update({
+      where: {
+        id: refreshId,
+      },
+      data: { revoked: true },
+    });
+  }
   /** ********************************************** */
   generateTokens({ sub }: { sub: string }): TokenPair {
     const accessToken = this.jwtService.sign(
