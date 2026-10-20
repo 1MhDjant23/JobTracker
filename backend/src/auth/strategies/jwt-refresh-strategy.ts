@@ -9,7 +9,7 @@ import { RefreshStrategyResult } from '../auth.types';
 
 export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,
-  'refreshToken',
+  'jwt-refresh',
 ) {
   constructor(
     private readonly confgService: ConfigService,
@@ -27,7 +27,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
   }
   async validate(
     req: Request,
-    payload: { sub: string },
+    payload: { sub: string; type: string },
   ): Promise<RefreshStrategyResult> {
     const refreshToken = req.cookies.refreshToken as string;
     if (!refreshToken) {
@@ -51,7 +51,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
       throw new UnauthorizedException('Invalid refresh token');
     }
     return {
-      userId: userWithToken.id,
+      sub: userWithToken.id,
       refreshId: matchedToken.id,
     };
   }

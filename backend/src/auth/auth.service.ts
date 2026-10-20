@@ -4,6 +4,7 @@ import {
   ConflictException,
   Injectable,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -11,9 +12,16 @@ import bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { toPublicUser } from 'src/user/mappers/user.mapper';
-import { LoginServiceResult, TokenPair, UserWithToken } from './auth.types';
-import { User as PrismaUser, RefreshToken } from 'generated/prisma/client';
+import {
+  LoginServiceResult,
+  RefreshServiceResult,
+  RefreshStrategyResult,
+  TokenPair,
+  UserWithToken,
+} from './auth.types';
+import { User as PrismaUser } from 'generated/prisma/client';
 import { UserService } from 'src/user/user.service';
+import type { User as PublicUser } from '../../../packages/contracts/src';
 
 @Injectable()
 export class AuthService {
@@ -80,6 +88,29 @@ export class AuthService {
       data: { revoked: true },
     });
   }
+  /** Refresh Logic */
+  async refresh(
+    userPayload: RefreshStrategyResult,
+  ): Promise<RefreshServiceResult> {
+    // revoke the old Refresh token
+    await this.prisma.refreshToken.update({
+      where: { id: userPayload.refreshId },
+      data: { revoked: true },
+    });
+    // generate new token's
+    const { accessToken, refreshToken } = this.generateTokens({
+      sub: userPayload.sub,
+    });
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+  /** Get Me Logic */
+  async getMe(userId: string): Promise<PublicUser> {
+    return await this.findUserById(userId);
+  }
+
   /** ********************************************** */
   generateTokens({ sub }: { sub: string }): TokenPair {
     const accessToken = this.jwtService.sign(
@@ -138,5 +169,14 @@ export class AuthService {
         email: email,
       },
     });
+  }
+  async findUserById(userId: string): Promise<PublicUser> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return toPublicUser(user);
   }
 }

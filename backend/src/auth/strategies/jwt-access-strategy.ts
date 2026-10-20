@@ -7,7 +7,7 @@ import { AccessStrategyResult } from '../auth.types';
 @Injectable()
 export class JwtAccessStrategy extends PassportStrategy(
   Strategy,
-  'accessToken',
+  'jwt-access',
 ) {
   constructor(private readonly confgService: ConfigService) {
     super({
@@ -16,9 +16,9 @@ export class JwtAccessStrategy extends PassportStrategy(
       ignoreExpiration: false,
     });
   }
-  validate(payload: { sub: string }): Promise<AccessStrategyResult> {
+  validate(payload: { sub: string; type: string }): AccessStrategyResult {
     return {
-      userId: payload.sub,
+      sub: payload.sub,
     };
   }
 }

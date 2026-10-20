@@ -5,11 +5,16 @@ import {
   Headers,
   Res,
   UseGuards,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
-import { ApiResponse } from '../../../packages/contracts/src/common';
+import {
+  ApiResponse,
+  User as PublicUser,
+} from '../../../packages/contracts/src';
 import type {
+  AccessStrategyResult,
   LoginControllerResult,
   RefreshStrategyResult,
 } from './auth.types';
@@ -17,6 +22,7 @@ import type { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { JwtRefreshGuard } from './guards/jwt-refresh-guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { JwtAccessGuard } from './guards/jwt-access.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -75,6 +81,35 @@ export class AuthController {
     });
     return {
       data: null,
+    };
+  }
+
+  @Post('refresh')
+  @UseGuards(JwtRefreshGuard)
+  async refresh(
+    @CurrentUser() userPayload: RefreshStrategyResult,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResponse<{ accessToken: string }>> {
+    const { accessToken, refreshToken } =
+      await this.authService.refresh(userPayload);
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: this.confgService.getOrThrow<string>('MODE') === 'PROD',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return {
+      data: { accessToken: accessToken },
+    };
+  }
+
+  @Get('me')
+  @UseGuards(JwtAccessGuard)
+  async getMe(
+    @CurrentUser() user: AccessStrategyResult,
+  ): Promise<ApiResponse<User>> {
+    return {
+      data: await this.authService.getMe(user.sub),
     };
   }
 }

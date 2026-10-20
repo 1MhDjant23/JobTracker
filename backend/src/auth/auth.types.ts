@@ -13,12 +13,12 @@ export type LoginControllerResult = Pick<
 >;
 
 export interface RefreshStrategyResult {
-  userId: string;
+  sub: string;
   refreshId: number;
 }
 
 export interface AccessStrategyResult {
-  userId: string;
+  sub: string;
 }
 
 export interface TokenPair {
@@ -28,3 +28,8 @@ export interface TokenPair {
 export interface UserWithToken extends PublicUser {
   refreshTokens: RefreshToken[];
 }
+
+export type RefreshServiceResult = Pick<
+  LoginServiceResult,
+  'accessToken' | 'refreshToken'
+>;
