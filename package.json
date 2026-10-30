@@ -5,5 +5,12 @@
     "backend",
     "frontend",
     "packages/*"
-  ]
+  ],
+  "allowScripts": {
+    "@prisma/engines": true,
+    "prisma": true,
+    "bcrypt": true,
+    "@parcel/watcher": true,
+    "unrs-resolver": true
+  }
 }

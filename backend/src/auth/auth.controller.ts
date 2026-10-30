@@ -23,6 +23,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtRefreshGuard } from './guards/jwt-refresh-guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtAccessGuard } from './guards/jwt-access.guard';
+// import type { CurrentUserProperty } from 'src/common/decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -89,9 +90,12 @@ export class AuthController {
   async refresh(
     @CurrentUser() userPayload: RefreshStrategyResult,
     @Res({ passthrough: true }) res: Response,
+    @Headers('User-Agent') userAgent: string | undefined,
   ): Promise<ApiResponse<{ accessToken: string }>> {
-    const { accessToken, refreshToken } =
-      await this.authService.refresh(userPayload);
+    const { accessToken, refreshToken } = await this.authService.refresh(
+      userPayload,
+      userAgent,
+    );
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: this.confgService.getOrThrow<string>('MODE') === 'PROD',
@@ -107,7 +111,7 @@ export class AuthController {
   @UseGuards(JwtAccessGuard)
   async getMe(
     @CurrentUser() user: AccessStrategyResult,
-  ): Promise<ApiResponse<User>> {
+  ): Promise<ApiResponse<PublicUser>> {
     return {
       data: await this.authService.getMe(user.sub),
     };

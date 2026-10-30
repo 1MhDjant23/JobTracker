@@ -7,6 +7,8 @@ import { join } from 'path';
 import { UserModule } from './user/user.module';
 import Joi from 'joi';
 import { PrismaModule } from './prisma/prisma.module';
+import { ExtractModule } from './extract/extract.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -19,13 +21,16 @@ import { PrismaModule } from './prisma/prisma.module';
         REFRESH_EXPIRATION: Joi.number().exist(),
         ACCESS_SECRET: Joi.string().exist(),
         ACCESS_EXPIRATION: Joi.number().exist(),
-        PORT: Joi.number().default(3000),
+        PORT: Joi.number().exist(),
         MODE: Joi.string().default('DEV'),
+        GEM_API_KEY: Joi.string(),
       }),
     }),
     PrismaModule,
     AuthModule,
     UserModule,
+    ExtractModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

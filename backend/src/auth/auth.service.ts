@@ -91,6 +91,7 @@ export class AuthService {
   /** Refresh Logic */
   async refresh(
     userPayload: RefreshStrategyResult,
+    userAgent: string | undefined,
   ): Promise<RefreshServiceResult> {
     // revoke the old Refresh token
     await this.prisma.refreshToken.update({
@@ -101,6 +102,8 @@ export class AuthService {
     const { accessToken, refreshToken } = this.generateTokens({
       sub: userPayload.sub,
     });
+    // save storeRefresh token
+    await this.storeRefreshToken(refreshToken, userPayload.sub, userAgent);
     return {
       accessToken,
       refreshToken,

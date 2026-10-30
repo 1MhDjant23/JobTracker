@@ -52,7 +52,7 @@ model Application {
   deadline      DateTime?
   requirements  String[]  // aray of extracted skills/requirement 
   rawExtracted  Json? // full ai response for debugg
-
+  sourceBoard   String?
   // managed by user
   status  ApplicationStatus @default(SAVED)
   appliedAt DateTime? // when user marked as APPLIED
