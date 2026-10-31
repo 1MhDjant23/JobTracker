@@ -9,6 +9,7 @@ import Joi from 'joi';
 import { PrismaModule } from './prisma/prisma.module';
 import { ExtractModule } from './extract/extract.module';
 import { AiModule } from './ai/ai.module';
+import { ApplicationModule } from './application/application.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AiModule } from './ai/ai.module';
     UserModule,
     ExtractModule,
     AiModule,
+    ApplicationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

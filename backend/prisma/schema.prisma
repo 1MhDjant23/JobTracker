@@ -40,8 +40,8 @@ model Application {
   company       String
   title         String
   role          String
-  summarize     String
-  companyEmail  String
+  summary       String
+  companyEmail  String?
   phone         String?
   postedAt      DateTime?
   website       String? // company platform

@@ -3,10 +3,11 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AuthService } from '../auth.service';
-import { UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException, Injectable } from '@nestjs/common';
 import bcrypt from 'bcrypt';
 import { RefreshStrategyResult } from '../auth.types';
 
+@Injectable()
 export class JwtRefreshStrategy extends PassportStrategy(
   Strategy,
   'jwt-refresh',
@@ -18,11 +19,13 @@ export class JwtRefreshStrategy extends PassportStrategy(
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req: Request) => {
+          // console.log('req.cookies.refreshToken:', req?.cookies?.refreshToken);
           return req?.cookies?.refreshToken;
         },
       ]),
-      secretOrKey: confgService.getOrThrow<string>('REFRESH_SECRET'),
+      secretOrKey: confgService.getOrThrow<string>('REFRESH_SECRET') ?? '',
       ignoreExpiration: false,
+      passReqToCallback: true,
     });
   }
   async validate(

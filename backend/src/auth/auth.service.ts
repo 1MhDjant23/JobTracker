@@ -160,6 +160,7 @@ export class AuthService {
     });
   }
   async findUserByUsername(username: string): Promise<PrismaUser | null> {
+    console.log('Finding user by username:', username);
     return await this.prisma.user.findUnique({
       where: {
         username: username,

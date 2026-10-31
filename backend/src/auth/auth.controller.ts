@@ -23,7 +23,6 @@ import { ConfigService } from '@nestjs/config';
 import { JwtRefreshGuard } from './guards/jwt-refresh-guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtAccessGuard } from './guards/jwt-access.guard';
-// import type { CurrentUserProperty } from 'src/common/decorators/current-user.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -55,6 +54,7 @@ export class AuthController {
         accessToken,
         user,
       },
+      message: 'Logged in successfully',
     };
   }
 
@@ -63,6 +63,7 @@ export class AuthController {
     await this.authService.register(dto);
     return {
       data: null,
+      message: 'User registered successfully. Please log in.',
     };
   }
 
@@ -82,6 +83,7 @@ export class AuthController {
     });
     return {
       data: null,
+      message: 'Logged out successfully',
     };
   }
 
@@ -104,6 +106,7 @@ export class AuthController {
     });
     return {
       data: { accessToken: accessToken },
+      message: 'Refreshed successfully',
     };
   }
 
@@ -114,6 +117,7 @@ export class AuthController {
   ): Promise<ApiResponse<PublicUser>> {
     return {
       data: await this.authService.getMe(user.sub),
+      message: 'User retrieved successfully',
     };
   }
 }

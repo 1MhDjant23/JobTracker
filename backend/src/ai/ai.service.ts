@@ -6,6 +6,11 @@ import { ConfigService } from '@nestjs/config';
 export class AiService {
   private ai: GoogleGenAI;
   private readonly logger = new Logger(AiService.name);
+  private readonly modelCascade = [
+    'gemini-3.8-flash',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash-lite',
+  ];
   constructor(private readonly confgService: ConfigService) {
     const apiKey = confgService.getOrThrow<string>('GEM_API_KEY');
     this.ai = new GoogleGenAI({ apiKey });
@@ -18,14 +23,30 @@ export class AiService {
     try {
       return await operation();
     } catch (error: any) {
+      console.log(`error in catch aiService: ${error}`);
       const isOverLoaded =
-        error?.status === 503 || error?.message?.include('high demand');
+        error?.status === 503 || error?.message?.includes('high demand');
+
       if (retries > 0 && isOverLoaded) {
         this.logger.warn(
           `Gemini model overloaded (503). Retrying in ${delay}ms... (${retries} attempts left)`,
         );
         await new Promise((resolve) => setTimeout(resolve, delay));
         return this.retryOperation(operation, retries - 1, delay * 2);
+      }
+      if (error?.status === 429) {
+        this.logger.warn(
+          `Gemini model rate limited or quota exceeded (429). Retrying in ${delay}ms... (${retries} attempts left)`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return this.retryOperation(operation, retries - 1, delay * 2);
+      }
+      if (retries < 0 && this.modelCascade.length > 0) {
+        this.logger.log(
+          `Switching to next model in cascade: ${this.modelCascade[0]}`,
+        );
+        this.modelCascade.shift();
+        return this.retryOperation(operation, retries, delay);
       }
       throw new Error(error);
     }
@@ -46,7 +67,7 @@ export class AiService {
     {
     "company": "string or null",
     "title": "string or null",
-    "summarizePostDetails": "string",
+    "summary": "clear and detailled description of the job posting as string",
     "phone": "string or null",
     "companyEmail": "string or null",
     "postedAt": "ISO date string or null",
